@@ -1,0 +1,7 @@
+LOAN APPLICATION
+
+Borrower: Acme Manufacturing LLC
+Industry: Industrial equipment
+Loan Amount: $4,200,000
+Purpose: Purchase of production facility
+Application Date: 2024-03-11

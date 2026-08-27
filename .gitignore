@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+blueprint.json
+output_memo.md
+.env

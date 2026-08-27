@@ -1,0 +1,8 @@
+# Core dependency. The pipeline uses Pydantic for typed models.
+pydantic>=2.0
+
+# Optional dependencies. The mock demo does not need these.
+# Install pymupdf to read PDF files.
+#   pip install pymupdf
+# Install anthropic to use the Claude provider.
+#   pip install anthropic
