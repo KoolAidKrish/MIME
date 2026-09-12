@@ -1,6 +1,6 @@
-# Credit Memo Forge
+# MIME (Make it More Efficient)
 
-Credit Memo Forge turns a set of source documents into a standard report.
+MIME turns a set of source documents into a standard report.
 It learns a report format from one example. It then applies that format to new documents.
 The prototype targets credit memos. The design fits any standard report.
 
