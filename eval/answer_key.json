@@ -1,0 +1,136 @@
+{
+  "_comment": "Frozen ground truth. A human wrote this from the documents, before scoring any provider. A failing case is data about the system, not a bug in the key. Do not soften a case to make a provider pass.",
+  "tolerance": {"number_rel": 1e-6, "ratio_abs": 0.01},
+  "ratio_inputs": {
+    "dscr": ["net_operating_income", "annual_debt_service"],
+    "ltv": ["loan_amount", "appraised_value"]
+  },
+  "cases": {
+    "case01_clean": {
+      "purpose": "Happy path. Clean labels, all documents present.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"dscr": 1.5, "ltv": 0.7},
+      "expected_data_gaps": [],
+      "expected_absent_computed": [],
+      "adversarial": false
+    },
+    "case02_missing_debt_schedule": {
+      "purpose": "The debt schedule is absent. The DSCR is not computable.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"ltv": 0.7},
+      "expected_data_gaps": ["debt_schedule"],
+      "expected_absent_computed": ["dscr"],
+      "adversarial": false
+    },
+    "case03_distractor_revenue": {
+      "purpose": "A prior-year revenue line sits before the real revenue. A loose skim grabs the wrong number.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"dscr": 1.5, "ltv": 0.7},
+      "expected_data_gaps": [],
+      "expected_absent_computed": [],
+      "adversarial": false
+    },
+    "case04_adversarial_canceling": {
+      "purpose": "Two extraction errors that cancel in the ratio. The DSCR looks correct while both inputs are wrong.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"dscr": 1.5, "ltv": 0.7},
+      "expected_data_gaps": [],
+      "expected_absent_computed": [],
+      "adversarial": true
+    },
+    "case05_reworded_labels": {
+      "purpose": "The financial statement uses different labels. The exact-hint extractor misses. This case proves the key is task-derived, not provider-derived.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"dscr": 1.5, "ltv": 0.7},
+      "expected_data_gaps": [],
+      "expected_absent_computed": [],
+      "adversarial": false
+    },
+    "case06_missing_guarantor": {
+      "purpose": "The guarantor document is absent. The guarantor net worth is not extractable.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "appraised_value": 6000000
+      },
+      "computed": {"dscr": 1.5, "ltv": 0.7},
+      "expected_data_gaps": ["guarantor_financials"],
+      "expected_absent_computed": [],
+      "adversarial": false
+    },
+    "case07_format_M_suffix": {
+      "purpose": "The loan amount uses a $4.2M short form. The naive number parser reads 4.2, not 4200000. Both providers fail this. It records a real parser limitation.",
+      "fields": {
+        "borrower_name": "Gamma Corp",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"dscr": 1.5, "ltv": 0.7},
+      "expected_data_gaps": [],
+      "expected_absent_computed": [],
+      "adversarial": false
+    },
+    "case08_clean_variant": {
+      "purpose": "A second happy path with different values. It stops the happy path from being one sample.",
+      "fields": {
+        "borrower_name": "Beta Foods Inc",
+        "loan_amount": 3000000,
+        "annual_revenue": 8000000,
+        "net_operating_income": 1000000,
+        "annual_debt_service": 800000,
+        "appraised_value": 5000000,
+        "guarantor_net_worth": 1500000
+      },
+      "computed": {"dscr": 1.25, "ltv": 0.6},
+      "expected_data_gaps": [],
+      "expected_absent_computed": [],
+      "adversarial": false
+    }
+  }
+}

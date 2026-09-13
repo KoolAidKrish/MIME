@@ -5,3 +5,6 @@ venv/
 blueprint.json
 output_memo.md
 .env
+
+# Generated eval run outputs (regenerable with: python eval/run_eval.py all)
+eval/outputs/

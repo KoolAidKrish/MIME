@@ -1,0 +1,44 @@
+{
+  "report_type": "Credit Memo (eval)",
+  "version": 1,
+  "notes": "Frozen blueprint for the eval harness. A human reviewed and trimmed it. Do not edit it to match provider output.",
+  "sections": [
+    {
+      "id": "borrower_overview",
+      "title": "Borrower Overview",
+      "style_guide": "Write short, factual sentences in the active voice.",
+      "required_fields": [
+        {"name": "borrower_name", "description": "legal name of the borrower", "type": "string", "source_doc_type": "loan_application", "required": true, "computed": false, "computation": null, "extraction_hint": "Borrower"},
+        {"name": "loan_amount", "description": "requested loan amount", "type": "number", "source_doc_type": "loan_application", "required": true, "computed": false, "computation": null, "extraction_hint": "Loan Amount"}
+      ]
+    },
+    {
+      "id": "financial_analysis",
+      "title": "Financial Analysis",
+      "style_guide": "Write short, factual sentences in the active voice.",
+      "required_fields": [
+        {"name": "annual_revenue", "description": "annual revenue of the borrower", "type": "number", "source_doc_type": "financial_statements", "required": true, "computed": false, "computation": null, "extraction_hint": "Annual Revenue"},
+        {"name": "net_operating_income", "description": "net operating income", "type": "number", "source_doc_type": "financial_statements", "required": true, "computed": false, "computation": null, "extraction_hint": "Net Operating Income"},
+        {"name": "annual_debt_service", "description": "annual debt service", "type": "number", "source_doc_type": "debt_schedule", "required": true, "computed": false, "computation": null, "extraction_hint": "Annual Debt Service"},
+        {"name": "dscr", "description": "debt service coverage ratio", "type": "number", "source_doc_type": "", "required": true, "computed": true, "computation": "dscr", "extraction_hint": ""}
+      ]
+    },
+    {
+      "id": "collateral",
+      "title": "Collateral",
+      "style_guide": "Write short, factual sentences in the active voice.",
+      "required_fields": [
+        {"name": "appraised_value", "description": "appraised value of the collateral", "type": "number", "source_doc_type": "appraisal_report", "required": true, "computed": false, "computation": null, "extraction_hint": "Appraised Value"},
+        {"name": "ltv", "description": "loan to value ratio", "type": "number", "source_doc_type": "", "required": true, "computed": true, "computation": "ltv", "extraction_hint": ""}
+      ]
+    },
+    {
+      "id": "guarantor",
+      "title": "Guarantor",
+      "style_guide": "Write short, factual sentences in the active voice.",
+      "required_fields": [
+        {"name": "guarantor_net_worth", "description": "net worth of the guarantor", "type": "number", "source_doc_type": "guarantor_financials", "required": true, "computed": false, "computation": null, "extraction_hint": "Guarantor Net Worth"}
+      ]
+    }
+  ]
+}

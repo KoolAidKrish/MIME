@@ -25,7 +25,7 @@ _BLUEPRINT_SCHEMA = {
         "notes": {"type": "string"},
     },
     "required": ["report_type", "sections"],
-    "additionalProperties": True,
+    "additionalProperties": False,
 }
 
 _INSTRUCTION = (

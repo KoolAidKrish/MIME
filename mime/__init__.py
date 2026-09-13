@@ -1,4 +1,4 @@
-"""Credit Memo Forge.
+"""MIME - Make It More Efficient.
 
 This package turns a set of source documents into a standard report.
 It learns a report format from one example. It then applies that format to new documents.

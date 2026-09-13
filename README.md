@@ -1,8 +1,9 @@
-# Credit Memo Forge
+# MIME — Make It More Efficient
 
-Credit Memo Forge turns a set of source documents into a standard report.
+MIME turns a set of source documents into a standard report.
 It learns a report format from one example. It then applies that format to new documents.
 The prototype targets credit memos. The design fits any standard report.
+The name is a backronym: Make It More Efficient.
 
 ## What the prototype shows
 
@@ -13,6 +14,58 @@ The prototype demonstrates five ideas:
 3. **A provider abstraction.** The system runs on a mock model or on Claude. A customer with no Claude agreement selects a different provider.
 4. **Gap detection.** The system reports what it cannot do before it starts. It fails loudly and early.
 5. **Code for numbers, model for prose.** Code computes every ratio and checks every policy. The model writes only the narrative.
+
+## What the evaluation found
+
+The eval harness in `eval/` puts numbers on the pipeline.
+It compares a dumb baseline against the structured pipeline on 8 frozen cases.
+See `eval/README.md` for the method.
+
+Offline result, mock providers:
+
+| Metric | baseline_naive | structured |
+| --- | --- | --- |
+| Field extraction accuracy | 92.6% | 94.4% |
+| Computation accuracy | 93.3% | 86.7% |
+| Gap detection exact match | 100% | 100% |
+| Final-correct-but-facts-wrong | 1 | 0 |
+| Fabricated values | 0 | 0 |
+| Ungrounded facts | 0 | 0 |
+
+The conclusions:
+
+1. **The fact-level check is the real difference.**
+   On the adversarial case, the baseline built a correct-looking DSCR from two wrong inputs.
+   The structured pipeline did not. The count of "final correct but facts wrong" is 1 against 0.
+   A check of the final number alone would have passed the baseline.
+
+2. **Top-line accuracy alone does not separate the two.**
+   The field and computation scores are close. On computation the baseline even scores higher.
+   A single accuracy number would hide the difference that matters. You need the fact-level check.
+
+3. **The offline mock is brittle by design.**
+   The structured mock uses exact-label matching. A reworded label makes it miss.
+   That is why it scores lower on computation. This is a limit of the test double, not the architecture.
+   A real model reads a reworded label with ease.
+
+4. **A real parser gap exists.**
+   Both configs fail the `$4.2M` short form. The parser reads 4.2, not 4,200,000.
+   The eval records this as a number, not a claim.
+
+5. **Gap detection is reliable.**
+   Both configs report the exact set of missing documents on every case.
+
+6. **Deterministic configs have no variance.**
+   Three trials of each mock config gave a standard deviation of zero.
+   The harness refused to print a significance value for identical repeats.
+   Real variance needs a model provider.
+
+7. **The live run caught a bug the offline path could not.**
+   A first run against Claude failed with an API error.
+   The structured-output schema used `additionalProperties: true`, which the API rejects.
+   The mock never checked the schema, so it never saw the bug.
+   This is the reason to test on the real provider, not only on a stand-in.
+   The bug is now fixed. The full Claude numbers are pending a clean run.
 
 ## Install
 
@@ -41,13 +94,13 @@ The demo prints each phase. It writes the report to `output_memo.md`.
 The `induce` command builds a blueprint from an example report:
 
 ```bash
-python -m cmforge.cli induce examples/exemplar_memo.md --out blueprint.json
+python -m mime.cli induce examples/exemplar_memo.md --out blueprint.json
 ```
 
 The `run` command builds a report from a document folder:
 
 ```bash
-python -m cmforge.cli run blueprint.json examples/sample_docs --out report.md
+python -m mime.cli run blueprint.json examples/sample_docs --out report.md
 ```
 
 Add `--provider claude` to either command to use the Anthropic API.
@@ -80,13 +133,13 @@ DOCUMENT SET --> [Extraction] --> Fact Ledger
 
 | Stage | File | Job |
 | --- | --- | --- |
-| Induction | `cmforge/induction.py` | Turn an example report into a blueprint. |
-| Feasibility | `cmforge/feasibility.py` | Report the gaps before any model work. |
-| Extraction | `cmforge/extraction.py` | Pull each value from its source document. |
-| Computation | `cmforge/computation.py` | Compute ratios and check policy in code. |
-| Composition | `cmforge/composition.py` | Write each section from the fact ledger. |
-| Render | `cmforge/render.py` | Turn the result into Markdown. |
-| Pipeline | `cmforge/pipeline.py` | Run the runtime stages in order. |
+| Induction | `mime/induction.py` | Turn an example report into a blueprint. |
+| Feasibility | `mime/feasibility.py` | Report the gaps before any model work. |
+| Extraction | `mime/extraction.py` | Pull each value from its source document. |
+| Computation | `mime/computation.py` | Compute ratios and check policy in code. |
+| Composition | `mime/composition.py` | Write each section from the fact ledger. |
+| Render | `mime/render.py` | Turn the result into Markdown. |
+| Pipeline | `mime/pipeline.py` | Run the runtime stages in order. |
 
 ## How to extend the system
 
@@ -98,14 +151,14 @@ Write an example report. Run the `induce` command. Review the blueprint.
 You write no code for a new format.
 
 **Add a new document type.**
-Add the type to the capability registry in `cmforge/capabilities.py`.
+Add the type to the capability registry in `mime/capabilities.py`.
 Teach the extractor how to find the values.
 The feasibility check then stops reporting a capability gap for that type.
 
 **Add a new provider.**
-Write a class that fills the `ProviderAdapter` interface in `cmforge/providers/base.py`.
+Write a class that fills the `ProviderAdapter` interface in `mime/providers/base.py`.
 Report the capabilities that the provider supports.
-Add the provider to the factory in `cmforge/providers/registry.py`.
+Add the provider to the factory in `mime/providers/registry.py`.
 
 ## The provider abstraction
 
@@ -132,8 +185,8 @@ The prototype keeps a narrow scope. A production system needs more work:
 ## Layout
 
 ```
-credit-memo-forge/
-  cmforge/
+MIME/
+  mime/
     models.py          Typed data models
     capabilities.py    The list of supported skills
     contextpack.py     The prompt context helpers

@@ -51,7 +51,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the command line interface."""
-    parser = argparse.ArgumentParser(prog="cmforge", description="Credit Memo Forge")
+    parser = argparse.ArgumentParser(prog="mime", description="MIME - Make It More Efficient")
     parser.add_argument("--provider", default="mock", help="provider name: mock or claude")
     sub = parser.add_subparsers(dest="command", required=True)
 

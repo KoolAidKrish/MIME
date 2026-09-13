@@ -12,11 +12,11 @@ from __future__ import annotations
 
 import os
 
-from cmforge.capabilities import default_registry
-from cmforge.induction import induce_blueprint
-from cmforge.pdf import load_folder
-from cmforge.pipeline import run
-from cmforge.providers.registry import get_provider
+from mime.capabilities import default_registry
+from mime.induction import induce_blueprint
+from mime.pdf import load_folder
+from mime.pipeline import run
+from mime.providers.registry import get_provider
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXEMPLAR = os.path.join(HERE, "examples", "exemplar_memo.md")

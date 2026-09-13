@@ -14,16 +14,18 @@ from .contextpack import pack_context
 from .models import Blueprint, DocumentRef, Fact, FactLedger
 from .providers.base import ProviderAdapter
 
+# Structured outputs require additionalProperties=false on every object.
+# They also expect each property to appear in "required".
+# The value uses anyOf, because a plain type union is less widely supported.
 _EXTRACTION_SCHEMA = {
     "type": "object",
     "properties": {
         "found": {"type": "boolean"},
-        "value": {"type": ["string", "number", "null"]},
+        "value": {"anyOf": [{"type": "string"}, {"type": "number"}, {"type": "null"}]},
         "source_quote": {"type": "string"},
-        "confidence": {"type": "number"},
     },
-    "required": ["found"],
-    "additionalProperties": True,
+    "required": ["found", "value", "source_quote"],
+    "additionalProperties": False,
 }
 
 _INSTRUCTION = (
