@@ -32,6 +32,8 @@ _INSTRUCTION = (
     "Read the document below. "
     "Find the value for the named field. "
     "Return the value and the exact source text. "
+    "For a number, return the full numeric value and expand any scale suffix. "
+    "For example, $4.2M is 4200000 and $50K is 50000. "
     "Return found=false when the value is absent."
 )
 

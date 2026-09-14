@@ -35,7 +35,7 @@ Each case tests one thing:
 | case04_adversarial_canceling | Two extraction errors cancel in the ratio. The DSCR looks correct while both inputs are wrong. |
 | case05_reworded_labels | The labels differ from the hints. The exact-hint extractor misses. |
 | case06_missing_guarantor | A document is absent. One field is not extractable. |
-| case07_format_M_suffix | A $4.2M short form breaks the number parser. |
+| case07_format_M_suffix | A $4.2M short form. Tests scale-suffix parsing. |
 | case08_clean_variant | A second happy path with different values. |
 | case09_missing_appraisal | The appraisal is absent. The LTV is not computable. |
 | case10_missing_two | Two documents are absent. The DSCR is not computable. |
@@ -104,14 +104,14 @@ Three configs over 11 cases. The mock is the deterministic test double. `structu
 
 | Metric | baseline_naive | structured (mock) | structured_claude (live) |
 | --- | --- | --- | --- |
-| Field extraction accuracy | 94.4% (67/71) | 95.8% (68/71) | 97.2% (69/71) |
-| Computation accuracy | 94.4% (17/18) | 88.9% (16/18) | 88.9% (16/18) |
-| Ratio raw error (mean) | 0.0389 | 0.0412 | 0.0412 |
-| Ratio normalized error (mean) | 5.56% | 5.88% | 5.88% |
+| Field extraction accuracy | 95.8% (68/71) | 97.2% (69/71) | 97.2% (69/71) |
+| Computation accuracy | 100% (18/18) | 94.4% (17/18) | 88.9% (16/18) |
+| Ratio raw error (mean) | 0.0000 | 0.0000 | 0.0412 |
+| Ratio normalized error (mean) | 0.00% | 0.00% | 5.88% |
 | Gap detection exact match | 100% (11/11) | 100% (11/11) | 100% (11/11) |
 | Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) | 100% / 100% (0) |
 | Field-level silent proceeds | 1 | 3 | 2 |
-| Unsourced-assertion rate (prose) | 1/78 | 1/75 | 0/77 |
+| Unsourced-assertion rate (prose) | 0/78 | 0/75 | 0/77 |
 | Final-correct-but-facts-wrong | 1 | 0 | 0 |
 | Fabricated values | 0 | 0 | 0 |
 | Ungrounded facts | 0 | 0 | 0 |

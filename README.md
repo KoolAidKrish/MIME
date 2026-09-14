@@ -94,18 +94,20 @@ See `eval/README.md` for the method.
 
 | Metric | baseline_naive | structured (mock) | structured_claude (live) |
 | --- | --- | --- | --- |
-| Field extraction accuracy | 94.4% | 95.8% | **97.2%** |
-| Computation accuracy | 94.4% | 88.9% | 88.9% |
+| Field extraction accuracy | 95.8% | 97.2% | 97.2% |
+| Computation accuracy | **100%** | 94.4% | 88.9% |
 | Gap detection exact match | 100% | 100% | 100% |
 | Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) | 100% / 100% (0) |
 | Field-level silent proceeds | 1 | 3 | 2 |
-| Unsourced-assertion rate (prose) | 1/78 | 1/75 | **0/77** |
+| Unsourced-assertion rate (prose) | 0/78 | 0/75 | 0/77 |
 | Final-correct-but-facts-wrong | 1 | 0 | 0 |
 | Fabricated values | 0 | 0 | 0 |
 | Ungrounded facts (ledger) | 0 | 0 | 0 |
 
-The live model leads on field extraction, 97.2% against 95.8% for the mock, because it reads a reworded label the exact-hint mock misses.
-Across 5 independent live trials, the field accuracy was identical every run (97.2%, standard deviation 0).
+The mock and the live model tie on field extraction at 97.2%.
+The mock leads on computation, 94.4% against 88.9%, for one reason. The amount parser now expands the `$4.2M` short form to 4,200,000, while the recorded live run collapsed it to 4.2 at extraction time.
+The extraction prompt now tells the model to expand a suffix, so a re-run of `structured_claude` picks this up.
+Across 5 independent live trials, the field accuracy was identical every run, 97.2%, standard deviation 0.
 Extraction of labeled fields is stable, so there is no run-to-run variance to test, and the harness reports no p-value.
 
 **Numeric error is bounded by extraction error.**
@@ -129,9 +131,10 @@ The conclusions:
    That is why it scores lower on computation. This is a limit of the test double, not the architecture.
    A real model reads a reworded label with ease.
 
-4. **A real parser gap exists.**
-   Both configs fail the `$4.2M` short form. The parser reads 4.2, not 4,200,000.
-   The eval records this as a number, not a claim.
+4. **The `$4.2M` short form is now parsed.**
+   The amount parser expands a scale suffix, so the mock and naive configs read `$4.2M` as 4,200,000.
+   Naive computation reached 100% and the mock reached 94.4%.
+   The recorded live run predates the matching extraction-prompt fix, so its case07 stays off until a re-run.
 
 5. **Gap detection is reliable.**
    Both configs report the exact set of missing documents on every case.

@@ -25,6 +25,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 from harness import CASES_DIR, OUTPUTS_DIR, load_blueprint  # noqa: E402
+from mime.numbers import parse_amount  # noqa: E402
 
 ANSWER_KEY_PATH = os.path.join(_HERE, "answer_key.json")
 EXEMPLAR_PATH = os.path.join(_HERE, "..", "examples", "exemplar_memo.md")
@@ -56,13 +57,22 @@ def _normalize(text: str) -> str:
 
 
 def _grounded(value, source_quote: str) -> bool:
-    """Return True when the value text appears in the source text.
+    """Return True when the value traces to the source text.
 
-    The check normalizes both sides the same way, so spacing does not matter.
+    A number is grounded when the amount in the source parses to the same value.
+    This handles a scale suffix, so 4200000 is grounded in the source '$4.2M'.
+    A string is grounded by a normalized substring match.
     """
-    needle = str(value)
-    if isinstance(value, float) and value.is_integer():
-        needle = str(int(value))
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        needle = _normalize(str(value))
+        return needle in _normalize(source_quote)
+    amount = parse_amount(source_quote)
+    if amount is not None and abs(numeric - amount) <= max(0.01, abs(amount) * 0.005):
+        return True
+    # Fall back to a literal match for a number written without a suffix.
+    needle = str(int(numeric)) if numeric.is_integer() else str(numeric)
     return _normalize(needle) in _normalize(source_quote)
 
 

@@ -16,6 +16,7 @@ import re
 from typing import Any
 
 from ..contextpack import unpack_context
+from ..numbers import parse_amount
 from .base import Capability, ProviderAdapter
 
 # The mock maps a keyword in the example report to a field specification.
@@ -245,11 +246,9 @@ class MockProvider(ProviderAdapter):
         after = segment.split(":", 1)[1].strip() if ":" in segment else segment
 
         if ftype == "number":
-            match = re.search(r"[-+]?\$?[\d,]+(?:\.\d+)?", after)
-            if not match:
+            value: Any = parse_amount(after)
+            if value is None:
                 return {"found": False}
-            raw = match.group().replace("$", "").replace(",", "")
-            value: Any = float(raw)
         else:
             value = after
 

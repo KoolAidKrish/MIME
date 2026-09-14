@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from mime.numbers import parse_amount
 from mime.providers.mock import MockProvider
 
 
@@ -41,13 +42,12 @@ class NaiveProvider(MockProvider):
 
         for line in text.splitlines():
             if key and key in line.lower():
-                match = re.search(r"[-+]?\$?[\d,]+(?:\.\d+)?", line)
-                if match:
-                    raw = match.group().replace("$", "").replace(",", "")
+                value = parse_amount(line)
+                if value is not None:
                     start = text.find(line)
                     return {
                         "found": True,
-                        "value": float(raw),
+                        "value": value,
                         "source_quote": line.strip(),
                         "char_start": start,
                         "char_end": start + len(line),
@@ -56,16 +56,15 @@ class NaiveProvider(MockProvider):
 
         # Fallback: grab the first number anywhere in the document.
         # The fallback prints a visible warning, so a bad grab is not silent.
-        match = re.search(r"[-+]?\$?[\d,]+(?:\.\d+)?", text)
-        if match:
+        value = parse_amount(text)
+        if value is not None:
             print(
                 f"[warn] naive fallback: no line matched key '{key}'; "
                 f"the provider grabbed the first number in the document"
             )
-            raw = match.group().replace("$", "").replace(",", "")
             return {
                 "found": True,
-                "value": float(raw),
+                "value": value,
                 "source_quote": "(fallback: first number in document)",
                 "confidence": 0.2,
             }
