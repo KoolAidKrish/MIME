@@ -104,10 +104,10 @@ Three configs over 11 cases. The mock is the deterministic test double. `structu
 
 | Metric | baseline_naive | structured (mock) | structured_claude (live) |
 | --- | --- | --- | --- |
-| Field extraction accuracy | 95.8% (68/71) | 97.2% (69/71) | 97.2% (69/71) |
-| Computation accuracy | 100% (18/18) | 94.4% (17/18) | 88.9% (16/18) |
-| Ratio raw error (mean) | 0.0000 | 0.0000 | 0.0412 |
-| Ratio normalized error (mean) | 0.00% | 0.00% | 5.88% |
+| Field extraction accuracy | 95.8% (68/71) | 97.2% (69/71) | 98.6% (70/71) |
+| Computation accuracy | 100% (18/18) | 94.4% (17/18) | 94.4% (17/18) |
+| Ratio raw error (mean) | 0.0000 | 0.0000 | 0.0000 |
+| Ratio normalized error (mean) | 0.00% | 0.00% | 0.00% |
 | Gap detection exact match | 100% (11/11) | 100% (11/11) | 100% (11/11) |
 | Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) | 100% / 100% (0) |
 | Field-level silent proceeds | 1 | 3 | 2 |
@@ -142,7 +142,7 @@ The mock providers are deterministic. Every trial gives the same output. The var
 Repeated trials of a deterministic config do not add information.
 The trials harness still records them, so the flow is ready for a stochastic provider.
 
-We ran 5 live trials of `structured_claude`. The field accuracy was identical on every run, 97.2%, with a standard deviation of 0.
+We ran 5 live trials of `structured_claude`. The field accuracy was identical on every run, with a standard deviation of 0.
 Extraction of clearly labeled fields is stable, so this metric has no run-to-run variance to test.
 The harness therefore reports no p-value, which is the correct result.
 A metric with more variance, such as a graded narrative, would exercise the statistic.

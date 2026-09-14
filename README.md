@@ -9,7 +9,7 @@ The name is a backronym: Make It More Efficient.
 
 MIME builds the report at **O(corpus + N x ledger)** input cost, against **O(N x corpus)** for a full-context baseline.
 On a 50-document, 15-section memo that is about **14x fewer input tokens** and about **11x lower cost** than a cached baseline.
-Quality holds: on the live model, field extraction accuracy is 97%, numeric error is bounded by extraction error, and 0 of 77 numbers in the prose were untraceable to the ledger.
+Quality holds: on the live model, field extraction accuracy is 98.6%, numeric error is bounded by extraction error, and 0 of 77 numbers in the prose were untraceable to the ledger.
 The efficiency numbers are deterministic and reproducible. The quality numbers cover both the live model and the offline test double.
 
 ## What the prototype shows
@@ -94,8 +94,8 @@ See `eval/README.md` for the method.
 
 | Metric | baseline_naive | structured (mock) | structured_claude (live) |
 | --- | --- | --- | --- |
-| Field extraction accuracy | 95.8% | 97.2% | 97.2% |
-| Computation accuracy | **100%** | 94.4% | 88.9% |
+| Field extraction accuracy | 95.8% | 97.2% | **98.6%** |
+| Computation accuracy | 100% | 94.4% | 94.4% |
 | Gap detection exact match | 100% | 100% | 100% |
 | Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) | 100% / 100% (0) |
 | Field-level silent proceeds | 1 | 3 | 2 |
@@ -104,11 +104,11 @@ See `eval/README.md` for the method.
 | Fabricated values | 0 | 0 | 0 |
 | Ungrounded facts (ledger) | 0 | 0 | 0 |
 
-The mock and the live model tie on field extraction at 97.2%.
-The mock leads on computation, 94.4% against 88.9%, for one reason. The amount parser now expands the `$4.2M` short form to 4,200,000, while the recorded live run collapsed it to 4.2 at extraction time.
-The extraction prompt now tells the model to expand a suffix, so a re-run of `structured_claude` picks this up.
-Across 5 independent live trials, the field accuracy was identical every run, 97.2%, standard deviation 0.
-Extraction of labeled fields is stable, so there is no run-to-run variance to test, and the harness reports no p-value.
+The live model leads on field extraction at 98.6%, and it ties the mock on computation at 94.4%.
+The amount parser and the matching extraction prompt closed the `$4.2M` case for every config, including the live model on a re-run.
+The one field the live model still misses is the reworded "Operating Income" label in case05, which is a semantic extraction limit, not a parser one.
+The naive baseline shows 100% computation, but its adversarial row is 1: one of those ratios is correct from wrong inputs. Read the two rows together.
+A 5-trial live run showed zero run-to-run variance in field accuracy, standard deviation 0. Extraction of labeled fields is stable, so there is no variance to test, and the harness reports no p-value.
 
 **Numeric error is bounded by extraction error.**
 MIME computes every ratio in code, in `mime/computation.py`. The model never asserts a financial figure.
@@ -133,8 +133,8 @@ The conclusions:
 
 4. **The `$4.2M` short form is now parsed.**
    The amount parser expands a scale suffix, so the mock and naive configs read `$4.2M` as 4,200,000.
-   Naive computation reached 100% and the mock reached 94.4%.
-   The recorded live run predates the matching extraction-prompt fix, so its case07 stays off until a re-run.
+   The extraction prompt tells the model to do the same, and a live re-run confirmed it: the model now reads `$4.2M` correctly.
+   Naive computation reached 100%, and the mock and the live model reached 94.4%.
 
 5. **Gap detection is reliable.**
    Both configs report the exact set of missing documents on every case.
@@ -149,7 +149,7 @@ The conclusions:
    The structured-output schema used `additionalProperties: true`, which the API rejects.
    The mock never checked the schema, so it never saw the bug.
    This is the reason to test on the real provider, not only on a stand-in.
-   The bug is now fixed and the live run is complete. On the live model, field extraction reached 97.2% and 0 of 77 prose numbers were untraceable.
+   The bug is now fixed and the live run is complete. On the live model, field extraction reached 98.6% and 0 of 77 prose numbers were untraceable.
 
 8. **Gap detection is document-level, not field-level.**
    Over 11 cases, feasibility flags every missing document. Precision and recall are both 100%, with zero false negatives.
