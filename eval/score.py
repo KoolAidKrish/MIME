@@ -116,6 +116,8 @@ def score_config(config_name: str, answer_key: dict, blueprint, out_dir: str | N
     ratio_raw_errors: list[float] = []
     ratio_norm_errors: list[float] = []
     gap_match = gap_total = 0
+    gap_tp = gap_fp = gap_fn = 0
+    silent_proceeds = 0
     final_correct_facts_wrong = 0
     fabrications = 0
     ungrounded = 0
@@ -160,10 +162,24 @@ def score_config(config_name: str, answer_key: dict, blueprint, out_dir: str | N
             if name in facts:
                 fabrications += 1
 
-        # Gap detection exact match.
+        # Gap detection: exact match, plus precision and recall over document types.
+        detected_gaps = set(record.get("detected_data_gap_types", []))
+        expected_gaps = set(truth["expected_data_gaps"])
         gap_total += 1
-        if set(record.get("detected_data_gap_types", [])) == set(truth["expected_data_gaps"]):
+        if detected_gaps == expected_gaps:
             gap_match += 1
+        gap_tp += len(detected_gaps & expected_gaps)
+        gap_fp += len(detected_gaps - expected_gaps)
+        gap_fn += len(expected_gaps - detected_gaps)
+
+        # Field-level silent proceed: a required field is absent, and no document
+        # gap explains it. Feasibility checks for missing documents, not missing
+        # fields inside a present document, so this class slips past it.
+        for field in blueprint.all_fields():
+            if field.computed:
+                continue
+            if field.name not in facts and field.source_doc_type not in detected_gaps:
+                silent_proceeds += 1
 
         # The adversarial metric: a right-looking ratio built from wrong inputs.
         for ratio_name, inputs in ratio_inputs.items():
@@ -191,6 +207,8 @@ def score_config(config_name: str, answer_key: dict, blueprint, out_dir: str | N
         "ratio_raw_error_mean": sum(ratio_raw_errors) / len(ratio_raw_errors) if ratio_raw_errors else 0.0,
         "ratio_norm_error_mean": sum(ratio_norm_errors) / len(ratio_norm_errors) if ratio_norm_errors else 0.0,
         "gap_exact_match": (gap_match, gap_total),
+        "gap_precision_recall": (gap_tp, gap_fp, gap_fn),
+        "silent_proceeds": silent_proceeds,
         "final_correct_but_facts_wrong": final_correct_facts_wrong,
         "fabrications": fabrications,
         "ungrounded_facts": ungrounded,
@@ -203,6 +221,14 @@ def _pct(pair: tuple[int, int]) -> str:
     if total == 0:
         return "n/a"
     return f"{100.0 * correct / total:5.1f}% ({correct}/{total})"
+
+
+def _gap_pr(triple: tuple[int, int, int]) -> str:
+    """Return precision, recall, and the false-negative count for gap detection."""
+    tp, fp, fn = triple
+    precision = 100.0 * tp / (tp + fp) if (tp + fp) else 100.0
+    recall = 100.0 * tp / (tp + fn) if (tp + fn) else 100.0
+    return f"{precision:.0f}%/{recall:.0f}% (fn={fn})"
 
 
 def main() -> int:
@@ -242,6 +268,8 @@ def main() -> int:
         ("Ratio raw error (mean)", lambda r: f"{r['ratio_raw_error_mean']:.4f}"),
         ("Ratio norm error (mean)", lambda r: f"{100 * r['ratio_norm_error_mean']:.2f}%"),
         ("Gap detection exact match", lambda r: _pct(r["gap_exact_match"])),
+        ("Gap precision/recall (fn)", lambda r: _gap_pr(r["gap_precision_recall"])),
+        ("Field-level silent proceeds", lambda r: str(r["silent_proceeds"])),
         ("Final-correct-but-facts-wrong", lambda r: str(r["final_correct_but_facts_wrong"])),
         ("Fabricated values", lambda r: str(r["fabrications"])),
         ("Ungrounded facts", lambda r: str(r["ungrounded_facts"])),

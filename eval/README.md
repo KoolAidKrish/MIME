@@ -22,7 +22,7 @@ python eval/score.py
 
 ## The frozen set
 
-The set has 8 cases in `cases/`. A human wrote the answer key in `answer_key.json` from the documents.
+The set has 11 cases in `cases/`. A human wrote the answer key in `answer_key.json` from the documents.
 The key came before any scoring. A failing case is data about the system. It is not a bug in the key.
 
 Each case tests one thing:
@@ -37,6 +37,9 @@ Each case tests one thing:
 | case06_missing_guarantor | A document is absent. One field is not extractable. |
 | case07_format_M_suffix | A $4.2M short form breaks the number parser. |
 | case08_clean_variant | A second happy path with different values. |
+| case09_missing_appraisal | The appraisal is absent. The LTV is not computable. |
+| case10_missing_two | Two documents are absent. The DSCR is not computable. |
+| case11_present_but_empty | The debt schedule is present but empty. Feasibility flags nothing, yet the field is missing. |
 
 `case04_adversarial_canceling` is the important one.
 It is the case that separates a real verifier from a check of the final answer.
@@ -88,19 +91,25 @@ The scorer reports these numbers per config:
 - **Computation accuracy** — the fraction of ratios with the correct value.
 - **Ratio raw error** and **ratio normalized error** — two views of the same ratio miss.
 - **Gap detection exact match** — the fraction of cases where the detected gap set is exact.
+- **Gap precision / recall** — over document types, with the false-negative count. A false negative is a missing document the check did not flag.
+- **Field-level silent proceeds** — a required field ends up missing and no document gap explains it. Feasibility checks documents, not fields, so this class slips past it.
 - **Final-correct-but-facts-wrong** — the headline. It counts a correct ratio built from wrong inputs.
 - **Fabricated values** — a value the provider produced that should be absent.
-- **Ungrounded facts** — a value that does not appear in its source text.
+- **Ungrounded facts** — a ledger value that does not appear in its source text.
+- **Unsourced-assertion rate** — a number in the composed prose that does not trace to a ledger value. Measured by `assertion_tracer.py`.
 
 ## The result (offline, mock providers)
 
 | Metric | baseline_naive | structured |
 | --- | --- | --- |
-| Field extraction accuracy | 92.6% (50/54) | 94.4% (51/54) |
-| Computation accuracy | 93.3% (14/15) | 86.7% (13/15) |
-| Ratio raw error (mean) | 0.0467 | 0.0500 |
-| Ratio normalized error (mean) | 6.67% | 7.14% |
-| Gap detection exact match | 100% (8/8) | 100% (8/8) |
+| Field extraction accuracy | 94.4% (67/71) | 95.8% (68/71) |
+| Computation accuracy | 94.4% (17/18) | 88.9% (16/18) |
+| Ratio raw error (mean) | 0.0389 | 0.0412 |
+| Ratio normalized error (mean) | 5.56% | 5.88% |
+| Gap detection exact match | 100% (11/11) | 100% (11/11) |
+| Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) |
+| Field-level silent proceeds | 1 | 3 |
+| Unsourced-assertion rate (prose) | 1/78 | 1/75 |
 | Final-correct-but-facts-wrong | 1 | 0 |
 | Fabricated values | 0 | 0 |
 | Ungrounded facts | 0 | 0 |
@@ -147,7 +156,7 @@ The harness prints this p-value only when the samples vary. It never prints it f
 eval/
   answer_key.json       Frozen ground truth, written before scoring
   blueprint_eval.json   Frozen, reviewed blueprint
-  cases/                8 document sets
+  cases/                11 document sets
   configs.py            The config registry
   naive_provider.py     The dumb baseline provider
   harness.py            Runs one config over the cases, resumable
@@ -156,4 +165,7 @@ eval/
   run_trials.py         Run N trials per config
   aggregate_trials.py   Mean, stdev, min, max, and exact p-value
   stats.py              The exact separation p-value
+  cost_model.py         Token and cost model, scaling curve, amortization
+  assertion_tracer.py   Unsourced-assertion rate in the composed prose
+  reports/              Generated scaling artifacts (csv, md, svg)
 ```

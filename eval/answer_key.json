@@ -131,6 +131,50 @@
       "expected_data_gaps": [],
       "expected_absent_computed": [],
       "adversarial": false
+    },
+    "case09_missing_appraisal": {
+      "purpose": "The appraisal is absent. The LTV is not computable.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "annual_debt_service": 1200000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"dscr": 1.5},
+      "expected_data_gaps": ["appraisal_report"],
+      "expected_absent_computed": ["ltv"],
+      "adversarial": false
+    },
+    "case10_missing_two": {
+      "purpose": "The debt schedule and the guarantor document are both absent. The DSCR is not computable.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "appraised_value": 6000000
+      },
+      "computed": {"ltv": 0.7},
+      "expected_data_gaps": ["debt_schedule", "guarantor_financials"],
+      "expected_absent_computed": ["dscr"],
+      "adversarial": false
+    },
+    "case11_present_but_empty": {
+      "purpose": "The debt schedule is present but holds no figure. Feasibility sees the document and flags no gap, yet the field is still missing. This is a field-level silent proceed.",
+      "fields": {
+        "borrower_name": "Acme Manufacturing LLC",
+        "loan_amount": 4200000,
+        "annual_revenue": 12500000,
+        "net_operating_income": 1800000,
+        "appraised_value": 6000000,
+        "guarantor_net_worth": 2500000
+      },
+      "computed": {"ltv": 0.7},
+      "expected_data_gaps": [],
+      "expected_absent_computed": ["dscr"],
+      "adversarial": false
     }
   }
 }

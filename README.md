@@ -9,7 +9,7 @@ The name is a backronym: Make It More Efficient.
 
 MIME builds the report at **O(corpus + N x ledger)** input cost, against **O(N x corpus)** for a full-context baseline.
 On a 50-document, 15-section memo that is about **14x fewer input tokens** and about **11x lower cost** than a cached baseline.
-Quality holds: field extraction accuracy is 94% on the frozen eval set, and numeric error is bounded by extraction error.
+Quality holds: field extraction accuracy is about 96% on the frozen eval set, and numeric error is bounded by extraction error.
 The efficiency numbers are deterministic and reproducible. The quality numbers use the offline test double, so the live-model numbers are still pending.
 
 ## What the prototype shows
@@ -91,19 +91,22 @@ These numbers use the offline mock provider, a deterministic test double.
 The live-model numbers are pending a clean Claude run.
 
 The eval harness in `eval/` puts numbers on the pipeline.
-It compares a dumb baseline against the structured pipeline on 8 frozen cases.
+It compares a dumb baseline against the structured pipeline on 11 frozen cases.
 See `eval/README.md` for the method.
 
 Offline result, mock providers:
 
-| Metric | baseline_naive | structured |
+| Metric | baseline_naive | structured (MIME) |
 | --- | --- | --- |
-| Field extraction accuracy | 92.6% | 94.4% |
-| Computation accuracy | 93.3% | 86.7% |
+| Field extraction accuracy | 94.4% | 95.8% |
+| Computation accuracy | 94.4% | 88.9% |
 | Gap detection exact match | 100% | 100% |
+| Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) |
+| Field-level silent proceeds | 1 | 3 |
+| Unsourced-assertion rate (prose) | 1/78 | 1/75 |
 | Final-correct-but-facts-wrong | 1 | 0 |
 | Fabricated values | 0 | 0 |
-| Ungrounded facts | 0 | 0 |
+| Ungrounded facts (ledger) | 0 | 0 |
 
 **Numeric error is bounded by extraction error.**
 MIME computes every ratio in code, in `mime/computation.py`. The model never asserts a financial figure.
@@ -144,6 +147,20 @@ The conclusions:
    The mock never checked the schema, so it never saw the bug.
    This is the reason to test on the real provider, not only on a stand-in.
    The bug is now fixed. The full Claude numbers are pending a clean run.
+
+8. **Gap detection is document-level, not field-level.**
+   Over 11 cases, feasibility flags every missing document. Precision and recall are both 100%, with zero false negatives.
+   A present-but-empty document is a different failure. The document is there, so feasibility flags nothing, yet the field stays missing.
+   MIME shows 3 such field-level silent proceeds. They surface later as a missing-field warning, not in the upfront check.
+   This is the same failure class as a truncated response that parses to a plausible wrong number. It is worth stating, not hiding.
+
+9. **The composed prose stays sourced.**
+   The assertion tracer reads every number in the memo prose and checks it against the ledger.
+   Across 11 memos, 74 of 75 numbers trace to a ledger value. The one exception is the case07 $4.2M display artifact, not an invented figure.
+   The mock composer writes only ledger values, so this rate is near zero by construction.
+   The tracer is the instrument that catches an invented figure once composition runs on a live model.
+
+Reproduce these numbers with `python eval/score.py` and `python eval/assertion_tracer.py`.
 
 ## Install
 
