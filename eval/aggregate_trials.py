@@ -91,13 +91,11 @@ def main() -> int:
                 p = exact_separation_pvalue(len(a), len(b))
                 print(f"  {names[i]} vs {names[j]}: winner={winner}, exact one-sided p={p:.4f}")
             else:
+                print(f"  {names[i]} vs {names[j]}: winner={winner} on every run.")
                 print(
-                    f"  {names[i]} vs {names[j]}: winner={winner} on every run, "
-                    f"but both configs are deterministic (stdev 0)."
-                )
-                print(
-                    "    The repeats are identical, not independent draws, so no p-value applies. "
-                    "Run a stochastic provider (Claude) for a real significance test."
+                    "    At least one config shows zero variance across its runs, so no p-value applies. "
+                    "Identical repeats are not independent evidence, whether the config is deterministic "
+                    "or a model that returned the same score on every run."
                 )
 
     if not printed_header:

@@ -98,21 +98,23 @@ The scorer reports these numbers per config:
 - **Ungrounded facts** — a ledger value that does not appear in its source text.
 - **Unsourced-assertion rate** — a number in the composed prose that does not trace to a ledger value. Measured by `assertion_tracer.py`.
 
-## The result (offline, mock providers)
+## The result
 
-| Metric | baseline_naive | structured |
-| --- | --- | --- |
-| Field extraction accuracy | 94.4% (67/71) | 95.8% (68/71) |
-| Computation accuracy | 94.4% (17/18) | 88.9% (16/18) |
-| Ratio raw error (mean) | 0.0389 | 0.0412 |
-| Ratio normalized error (mean) | 5.56% | 5.88% |
-| Gap detection exact match | 100% (11/11) | 100% (11/11) |
-| Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) |
-| Field-level silent proceeds | 1 | 3 |
-| Unsourced-assertion rate (prose) | 1/78 | 1/75 |
-| Final-correct-but-facts-wrong | 1 | 0 |
-| Fabricated values | 0 | 0 |
-| Ungrounded facts | 0 | 0 |
+Three configs over 11 cases. The mock is the deterministic test double. `structured_claude` is the live model.
+
+| Metric | baseline_naive | structured (mock) | structured_claude (live) |
+| --- | --- | --- | --- |
+| Field extraction accuracy | 94.4% (67/71) | 95.8% (68/71) | 97.2% (69/71) |
+| Computation accuracy | 94.4% (17/18) | 88.9% (16/18) | 88.9% (16/18) |
+| Ratio raw error (mean) | 0.0389 | 0.0412 | 0.0412 |
+| Ratio normalized error (mean) | 5.56% | 5.88% | 5.88% |
+| Gap detection exact match | 100% (11/11) | 100% (11/11) | 100% (11/11) |
+| Gap precision / recall (false negatives) | 100% / 100% (0) | 100% / 100% (0) | 100% / 100% (0) |
+| Field-level silent proceeds | 1 | 3 | 2 |
+| Unsourced-assertion rate (prose) | 1/78 | 1/75 | 0/77 |
+| Final-correct-but-facts-wrong | 1 | 0 | 0 |
+| Fabricated values | 0 | 0 | 0 |
+| Ungrounded facts | 0 | 0 | 0 |
 
 ## How to read the result
 
@@ -140,9 +142,10 @@ The mock providers are deterministic. Every trial gives the same output. The var
 Repeated trials of a deterministic config do not add information.
 The trials harness still records them, so the flow is ready for a stochastic provider.
 
-Point the harness at `structured_claude` to get real variance.
-A language model gives a different sample on each run.
-Then the mean, the standard deviation, and the range become meaningful.
+We ran 5 live trials of `structured_claude`. The field accuracy was identical on every run, 97.2%, with a standard deviation of 0.
+Extraction of clearly labeled fields is stable, so this metric has no run-to-run variance to test.
+The harness therefore reports no p-value, which is the correct result.
+A metric with more variance, such as a graded narrative, would exercise the statistic.
 
 For a clean separation, the harness reports an exact one-sided p-value.
 A clean separation means every sample of one config beats every sample of the other.
