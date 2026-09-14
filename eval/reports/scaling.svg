@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" font-family="sans-serif" font-size="12">
+<rect x="0" y="0" width="640" height="380" fill="white"/>
+<line x1="70" y1="30" x2="70" y2="330" stroke="#333"/>
+<line x1="70" y1="330" x2="490" y2="330" stroke="#333"/>
+<text x="280.0" y="368" text-anchor="middle">Report sections (N)</text>
+<text x="18" y="180.0" text-anchor="middle" transform="rotate(-90 18 180.0)">Cost per memo (USD)</text>
+<text x="70" y="348" text-anchor="middle">1</text>
+<text x="490" y="348" text-anchor="middle">50</text>
+<text x="62" y="35" text-anchor="end">126</text>
+<text x="62" y="330" text-anchor="end">0</text>
+<polyline points="70.0,324.0 87.1,312.0 104.3,300.0 147.1,270.0 190.0,240.0 232.9,210.0 318.6,150.0 490.0,30.0" fill="none" stroke="#c0392b" stroke-width="2.5"/>
+<rect x="506" y="31" width="12" height="12" fill="#c0392b"/>
+<text x="522" y="41">naive_full</text>
+<polyline points="70.0,322.5 87.1,321.3 104.3,320.0 147.1,316.8 190.0,313.7 232.9,310.6 318.6,304.3 490.0,291.7" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+<rect x="506" y="53" width="12" height="12" fill="#e67e22"/>
+<text x="522" y="63">naive_cached</text>
+<polyline points="70.0,329.3 87.1,329.2 104.3,329.1 147.1,328.8 190.0,328.6 232.9,328.3 318.6,327.8 490.0,326.7" fill="none" stroke="#2e7d32" stroke-width="2.5"/>
+<rect x="506" y="75" width="12" height="12" fill="#2e7d32"/>
+<text x="522" y="85">MIME</text>
+</svg>

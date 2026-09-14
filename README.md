@@ -5,6 +5,13 @@ It learns a report format from one example. It then applies that format to new d
 The prototype targets credit memos. The design fits any standard report.
 The name is a backronym: Make It More Efficient.
 
+## Result in one line
+
+MIME builds the report at **O(corpus + N x ledger)** input cost, against **O(N x corpus)** for a full-context baseline.
+On a 50-document, 15-section memo that is about **14x fewer input tokens** and about **11x lower cost** than a cached baseline.
+Quality holds: field extraction accuracy is 94% on the frozen eval set, and numeric error is bounded by extraction error.
+The efficiency numbers are deterministic and reproducible. The quality numbers use the offline test double, so the live-model numbers are still pending.
+
 ## What the prototype shows
 
 The prototype demonstrates five ideas:
@@ -15,7 +22,73 @@ The prototype demonstrates five ideas:
 4. **Gap detection.** The system reports what it cannot do before it starts. It fails loudly and early.
 5. **Code for numbers, model for prose.** Code computes every ratio and checks every policy. The model writes only the narrative.
 
-## What the evaluation found
+## Efficiency
+
+MIME reads each document once, then builds the report from a compact fact ledger.
+A naive approach re-reads every document for each section.
+This changes how the cost grows with the report.
+
+### The baselines
+
+Two baselines, on purpose. Pin them down, or a multiple means nothing.
+
+- **naive_full** — re-send every source document in full as context for each of the N sections. One frontier model. No cache.
+- **naive_cached** — the same, but cache the shared corpus across sections. This is the competent baseline. MIME must beat it to matter.
+
+The `baseline_naive` config in the eval is a different thing. It tests fact quality, not cost. Do not confuse the two.
+
+### The scaling law
+
+This is the real claim. A single multiple is one point. The curve is the argument.
+
+- Naive cost grows as **O(N x corpus)**. It re-reads the whole corpus for every section.
+- MIME cost grows as **O(corpus + N x ledger)**. It reads the corpus once, then a small ledger per section.
+
+Modeled at a 50-document, 15-section memo. The corpus is 500,000 tokens. The ledger is 2,000 tokens per section. Prices are dated 2026-09-13.
+
+| Approach | Input tokens | Cost per memo |
+| --- | --- | --- |
+| naive_full | 7,503,000 | $37.70 |
+| naive_cached | 7,503,000 | $6.83 |
+| MIME | 537,500 | $0.60 |
+
+MIME uses about **14x fewer input tokens**. It costs about **11x less than the cached baseline**, and about 63x less than the uncached one.
+
+Cost against section count (chart: [`eval/reports/scaling.svg`](eval/reports/scaling.svg)):
+
+| Sections | naive_full $ | naive_cached $ | MIME $ |
+| --- | --- | --- | --- |
+| 1 | 2.51 | 3.14 | 0.28 |
+| 5 | 12.57 | 4.19 | 0.37 |
+| 15 | 37.70 | 6.83 | 0.60 |
+| 30 | 75.41 | 10.78 | 0.94 |
+| 50 | 125.67 | 16.05 | 1.40 |
+
+Naive cost climbs with every section. MIME stays nearly flat.
+
+### Why cost falls faster than tokens
+
+The token count drops about 14x. The cost drops more, so the two multiples are not the same number.
+MIME runs the extraction pass on a cheap model, Haiku instead of Opus, and in a batch at half price.
+The same tokens therefore cost less. That gap is the reason, and it is worth stating before a reviewer asks.
+
+### Induction amortizes to near zero
+
+The blueprint compiles once per report format. Here that costs about $0.04.
+That one-time cost spreads across every run. At 1 run the memo costs $0.64. At 100 runs it costs $0.60.
+Runtime dominates, so the amortization is small. This is an honest note, not a headline.
+
+### Method
+
+Token counts use a fixed estimate of 4 characters per token.
+The scaling shape does not depend on this estimate. Only the absolute cost does.
+Run `python eval/cost_model.py` to reproduce every number here.
+Run `python eval/cost_model.py --exact` to count with the Anthropic tokenizer instead.
+
+## Quality: what the evaluation found
+
+These numbers use the offline mock provider, a deterministic test double.
+The live-model numbers are pending a clean Claude run.
 
 The eval harness in `eval/` puts numbers on the pipeline.
 It compares a dumb baseline against the structured pipeline on 8 frozen cases.
@@ -31,6 +104,11 @@ Offline result, mock providers:
 | Final-correct-but-facts-wrong | 1 | 0 |
 | Fabricated values | 0 | 0 |
 | Ungrounded facts | 0 | 0 |
+
+**Numeric error is bounded by extraction error.**
+MIME computes every ratio in code, in `mime/computation.py`. The model never asserts a financial figure.
+So a number can be wrong only when its input was extracted wrong. A ratio cannot drift on its own.
+MIME fabricated 0 figures across the eval set. This turns a design choice into a measurable guarantee.
 
 The conclusions:
 
